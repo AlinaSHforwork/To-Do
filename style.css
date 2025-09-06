@@ -1,0 +1,138 @@
+body {
+    font-family: Arial, sans-serif;
+    background-image: url('Gemini_Generated_Image_arueuxarueuxarue.png');
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.micro-5-regular {
+  font-family: "Micro 5", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
+}
+
+h1 {
+    font-family: "Micro 5", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    text-align: center;
+    color: #333;
+}
+
+.input-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+#taskInput {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#addTaskBtn {
+    padding: 10px 15px;
+    background-color: #8B5573;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+#taskList {
+    list-style: none;
+    padding: 0;
+}
+
+#taskList li {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#taskList li.completed {
+    text-decoration: line-through;
+    color: #888;
+}
+
+#taskList li button {
+    background-color: #8B5573;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.sideButton {
+    --bs-nav-pills-border-radius: var(--bs-border-radius);
+    --bs-nav-pills-link-active-color: #fff;
+    --bs-nav-pills-link-active-bg: #8B5573;
+}
+
+.sideButton .nav-link.active, .sideButton .show>.nav-link {
+    color: #fff;
+    background-color:#8B5573;
+        padding: 5px;
+    border-radius: 15%;
+}
+
+.sideButton{
+    --bs-nav-pills-border-radius: 50px;
+    --bs-nav-pills-link-active-color: #fff;
+    --bs-nav-pills-link-active-bg: #8B5573;
+    padding: 5px;
+}
+
+
+
+.sideButtonNav {
+    --bs-nav-link-padding-x: 1rem;
+    --bs-nav-link-padding-y: 0.5rem;
+    --bs-nav-link-font-weight: ;
+    --bs-nav-link-color: #8B5573;
+    --bs-nav-link-hover-color: #70455d;
+    --bs-nav-link-disabled-color: var(--bs-secondary-color);
+    display: flex
+;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+.nav-link {
+    display: block;
+    padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
+    font-size: var(--bs-nav-link-font-size);
+    font-weight: var(--bs-nav-link-font-weight);
+    color: var(--bs-nav-link-color);
+    text-decoration: none;
+    background: 0 0;
+    border: 50px;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+li{
+    list-style: none;
+    border-radius: 25%;
+}
