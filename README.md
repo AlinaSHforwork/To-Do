@@ -1,0 +1,3 @@
+<h1>Pixel to-do site💕</h1>
+<h3>I want to create website for planning and to-do lists in a cute pixel style in pink and purple tones.  
+  There should be a login, followed by several tabs that can be switched on the side. The first is the general account page, the second is a calendar where tasks and events are displayed, the third is a list of tasks for a specific day, which will default to today. This page can be scrolled sideways to change the day. it will look like cards being rearranged, the fourth is tasks by tags, the fifth is the Pomodoro method, which will emit a sound after a certain amount of time has passed. </h3>
