@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-image: url('Gemini_Generated_Image_arueuxarueuxarue.png');
+    background-image: url('../images/Gemini_Generated_Image_arueuxarueuxarue.png');
     display: flex;
     justify-content: center;
     align-items: center;
@@ -135,4 +135,46 @@ h1 {
 li{
     list-style: none;
     border-radius: 25%;
+}
+
+#daysGrid .cal-day { 
+    min-height: 90px; 
+    border:1px solid #e9ecef; 
+    padding:6px;     
+    position:relative; 
+    background:#fff; 
+    border-radius:4px; 
+    display:flex; 
+    flex-direction:column; 
+    justify-content:flex-start; 
+}
+#daysGrid .cal-day.inactive { 
+    background:#f8fafc; 
+    color:#8a8f94; 
+}
+#daysGrid .date-num { 
+    position:absolute; 
+    top:4px; 
+    right:6px; 
+    font-size:0.85rem; 
+}
+.event-badge { 
+    display:inline-block; 
+    width:8px; 
+    height:8px; 
+    border-radius:50%; 
+    margin-right:4px; 
+    background:#0d6efd; 
+}
+.event-item { 
+    font-size:0.9rem; 
+    padding:4px 0; 
+    border-bottom:1px dashed #eee; 
+}
+.cal-day .event-count { 
+    position:absolute; 
+    left:6px; 
+    bottom:6px; 
+    font-size:0.75rem; 
+    color:#495057; 
 }
