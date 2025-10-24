@@ -32,9 +32,6 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="tab5-tab" data-bs-toggle="pill" data-bs-target="#tab5" type="button" role="tab" aria-controls="tab5" aria-selected="false">Tab 5</button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tab6-tab" data-bs-toggle="pill" data-bs-target="#tab6" type="button" role="tab" aria-controls="tab6" aria-selected="false">Tab 6</button>
-                    </li>
                 </ul>
             </div>
             <!-- Main Content -->
@@ -109,27 +106,65 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-                        <h1>My To-Do List</h1>
-                        <div class="input-container">
-                            <input type="text" id="taskInput" placeholder="Add a new task...">
-                            <button id="addTaskBtn">Add Task</button>
+                        <h1>Tasks by Day</h1>
+                        <div class="input-container d-flex align-items-center gap-2 mb-2">
+                            <input type="text" id="taskInput" class="form-control" placeholder="Task title...">
+                            <input type="date" id="taskDate" class="form-control" style="max-width:160px;">
+                            <input type="text" id="taskTags" class="form-control" placeholder="tags (comma separated)" style="max-width:220px;">
+                            <button id="addTaskBtn" class="btn btn-primary">Add Task</button>
                         </div>
-                        <ul id="taskList">
-                            <!-- Tasks will be added here by JavaScript -->
+                        <ul id="taskList" class="list-unstyled">
+                            <!-- Tasks for selected date will be rendered here -->
                         </ul>
                     </div>
                     <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
-                        <h2>Tab 4 Content</h2>
-                        <p>Content for Tab 4 goes here.</p>
+                        <h2>Tasks by Tag</h2>
+                        <p class="small text-muted">Click a tag to filter tasks, or select "All".</p>
+                        <div id="tagFilterList" class="mb-2">
+                            <!-- tag buttons injected by JS -->
+                        </div>
+                        <div id="tagsTaskList">
+                            <!-- Tasks grouped / filtered by tag will be shown here -->
+                        </div>
                     </div>
                     <div class="tab-pane fade" id="tab5" role="tabpanel" aria-labelledby="tab5-tab">
-                        <h2>Tab 5 Content</h2>
-                        <p>Content for Tab 5 goes here.</p>
-                    </div>
-                    <div class="tab-pane fade" id="tab6" role="tabpanel" aria-labelledby="tab6-tab">
-                        <h2>Tab 6 Content</h2>
-                        <p>Content for Tab 6 goes here.</p>
-                    </div>
+                        <div class="pomodoro-wrap p-3">
+                            <h2 class="text-center">Pomodoro Timer</h2>
+                            
+                            <div class="timer-display text-center mb-3">
+                                <div id="timer" class="display-4">25:00</div>
+                                <div class="text-muted small">Focus on one task during Work sessions.</div>
+                            </div>
+
+                            <div class="d-flex justify-content-center gap-2 mb-3">
+                                <button id="startPomodoro" class="btn btn-primary">Start</button>
+                                <button id="pausePomodoro" class="btn btn-secondary">Pause</button>
+                                <button id="resetPomodoro" class="btn btn-outline-danger">Reset</button>
+                            </div>
+
+                            <div class="pomodoro-settings border rounded p-3">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-label small mb-1">Work (min)</label>
+                                        <input id="workMinutes" type="number" min="1" class="form-control form-control-sm" value="25">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-label small mb-1">Short Break (min)</label>
+                                        <input id="shortBreakMinutes" type="number" min="1" class="form-control form-control-sm" value="5">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-label small mb-1">Long Break (min)</label>
+                                        <input id="longBreakMinutes" type="number" min="1" class="form-control form-control-sm" value="15">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-label small mb-1">Sessions/Long Break</label>
+                                        <input id="sessionsBeforeLong" type="number" min="1" class="form-control form-control-sm" value="4">
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-muted small">Settings are saved locally.</div>
+                            </div>
+                        </div>
+                    </div>                    
                 </div>
             </div>
         </div>

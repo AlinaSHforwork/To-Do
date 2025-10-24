@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login — To-Do</title>
+    <link rel="stylesheet" href="../styles/style.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container col-6 mt-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title mb-3">Login</h3>
+                <form id="loginForm" novalidate>
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Email</label>
+                        <input id="loginEmail" class="form-control" type="email" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <input id="loginPassword" class="form-control" type="password" required />
+                    </div>
+                    <div id="loginAlert" class="alert d-none" role="alert"></div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button class="btn btn-primary" type="submit">Sign in</button>
+                        <a href="signin.html">Create account</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        const form = document.getElementById('loginForm');
+        const alertEl = document.getElementById('loginAlert');
+
+        function loadUsers(){ try { return JSON.parse(localStorage.getItem('users')||'[]'); } catch { return []; } }
+        function showAlert(msg, type='danger'){ alertEl.className = 'alert alert-' + type; alertEl.textContent = msg; alertEl.classList.remove('d-none'); }
+        function hideAlert(){ alertEl.className = 'alert d-none'; alertEl.textContent = ''; }
+
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            hideAlert();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const pwd = document.getElementById('loginPassword').value;
+            if(!email || !pwd){ showAlert('Fill in both fields.'); return; }
+
+            const users = loadUsers();
+            const user = users.find(u => (u.email||'').toLowerCase() === email);
+            if(!user){ showAlert('No account for that email.'); return; }
+
+            // simple check — stored password is base64-encoded in signup page
+            const stored = user.password || '';
+            const decoded = stored ? atob(stored) : '';
+            if(decoded !== pwd){ showAlert('Invalid password.'); return; }
+
+            // login success
+            localStorage.setItem('currentUser', JSON.stringify({id:user.id, name:user.name, email:user.email}));
+            showAlert('Login successful. Redirecting...', 'success');
+            setTimeout(()=> location.href = 'index.html', 700);
+        });
+    })();
+    </script>
+</body>
+</html>
