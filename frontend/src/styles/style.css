@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Micro+5&display=swap');
+
 body {
     /* Use Micro 5 if available, fallback to system sans */
     font-family: "Micro 5", Arial, Helvetica, sans-serif;

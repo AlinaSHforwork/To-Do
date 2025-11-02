@@ -76,3 +76,48 @@ app.delete('/api/events/:id', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
+
+
+
+// User model (Required for Sign-up/Login)
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true } // NOTE: Use bcrypt for production!
+});
+const User = mongoose.model('User', userSchema);
+
+// --- Authentication Endpoints ---
+
+// POST /api/register (Sign-up)
+app.post('/api/register', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = new User({ email, password });
+    await user.save();
+    
+    // For simplicity, we just return a success message and token (in a real app)
+    // Here we return a dummy token. You should implement JWT creation here.
+    res.status(201).json({ message: 'User registered successfully', token: 'dummy_auth_token_123' });
+    
+  } catch (err) {
+    if (err.code === 11000) { // MongoDB duplicate key error (Email already exists)
+      return res.status(409).json({ message: 'Email already registered.' });
+    }
+    res.status(500).json({ message: 'Server error during registration.' });
+  }
+});
+
+// POST /api/login
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  // NOTE: You would find the user and compare the HASHED password here.
+  // For now, we mock success if we find a user with this email.
+  const user = await User.findOne({ email });
+
+  if (user && user.password === password) { // Simple check, REPLACE with password HASHING!
+    res.json({ message: 'Login successful', token: 'dummy_auth_token_123' });
+  } else {
+    res.status(401).json({ message: 'Invalid credentials.' });
+  }
+});
