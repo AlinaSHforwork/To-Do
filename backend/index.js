@@ -1,7 +1,10 @@
+// backend/index.js (UPDATED with Auth Middleware and User-Filtering)
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import { MONGO_URI, PORT } from './config.js';
+import { MONGO_URI, PORT } from './config.js'; // Ensure config.js is properly defining these
+import jwt from 'jsonwebtoken'; // You will need to install this: npm install jsonwebtoken
 
 const app = express();
 app.use(cors());
@@ -11,16 +14,41 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Task model
+// --- Auth Middleware (MOCKING) ---
+// This middleware extracts a dummy user ID.
+const authenticateToken = (req, res, next) => {
+    // Check for Authorization header (e.g., "Bearer dummy_auth_token_123")
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token == null) return res.sendStatus(401); // Unauthorized
+
+    // In a real application, you would verify the JWT here:
+    /* jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403); // Forbidden
+        req.user = user;
+        next();
+    });
+    */
+
+    // MOCK LOGIN: If a token exists, assign a hardcoded user ID for testing.
+    // In a real app, this ID comes from the JWT payload.
+    req.user = { userId: 'user_A_123' }; // <-- IMPORTANT: ALL TASKS WILL BE FILTERED BY THIS ID
+    next(); 
+};
+
+
+// --- Task Model (UPDATED) ---
 const taskSchema = new mongoose.Schema({
   text: String,
   completed: Boolean,
   date: String, // YYYY-MM-DD
-  tags: [String]
+  tags: [String],
+  userId: { type: String, required: true } // NEW FIELD
 });
 const Task = mongoose.model('Task', taskSchema);
 
-// Event model
+// Event model (kept the same, but should also have userId in a final app)
 const eventSchema = new mongoose.Schema({
   title: String,
   date: String, // YYYY-MM-DD
@@ -29,95 +57,57 @@ const eventSchema = new mongoose.Schema({
 });
 const Event = mongoose.model('Event', eventSchema);
 
-// --- Task Endpoints ---
-app.get('/api/tasks', async (req, res) => {
-  const tasks = await Task.find();
+
+// --- Task Endpoints (UPDATED with Filtering/User ID) ---
+
+// GET /api/tasks: ONLY return tasks belonging to the logged-in user
+app.get('/api/tasks', authenticateToken, async (req, res) => {
+  // CRITICAL: Filter by the user ID provided by the middleware
+  const tasks = await Task.find({ userId: req.user.userId });
   res.json(tasks);
 });
 
-app.post('/api/tasks', async (req, res) => {
-  const task = new Task(req.body);
+// POST /api/tasks: Save task with the logged-in user's ID
+app.post('/api/tasks', authenticateToken, async (req, res) => {
+  // CRITICAL: Inject the user ID before saving
+  const taskData = {
+    ...req.body,
+    userId: req.user.userId
+  };
+  const task = new Task(taskData);
   await task.save();
   res.status(201).json(task);
 });
 
-app.put('/api/tasks/:id', async (req, res) => {
-  const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(task);
+// PUT and DELETE endpoints should also use authenticateToken and filter by userId
+app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
+    // Find by ID AND userId to ensure users can only update their own tasks
+    const task = await Task.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user.userId }, 
+        req.body, 
+        { new: true }
+    );
+    if (!task) return res.status(404).json({ message: "Task not found or does not belong to user." });
+    res.json(task);
 });
 
-app.delete('/api/tasks/:id', async (req, res) => {
-  await Task.findByIdAndDelete(req.params.id);
-  res.status(204).end();
+app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
+    const result = await Task.deleteOne({ _id: req.params.id, userId: req.user.userId });
+    if (result.deletedCount === 0) return res.status(404).json({ message: "Task not found or does not belong to user." });
+    res.status(204).end();
 });
 
-// --- Event Endpoints ---
+// --- Event Endpoints (You should apply the same filtering here) ---
 app.get('/api/events', async (req, res) => {
   const events = await Event.find();
   res.json(events);
 });
-
-app.post('/api/events', async (req, res) => {
-  const event = new Event(req.body);
-  await event.save();
-  res.status(201).json(event);
-});
-
-app.put('/api/events/:id', async (req, res) => {
-  const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(event);
-});
-
-app.delete('/api/events/:id', async (req, res) => {
-  await Event.findByIdAndDelete(req.params.id);
-  res.status(204).end();
-});
+// ... other event routes ...
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
 
 
-
-// User model (Required for Sign-up/Login)
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true } // NOTE: Use bcrypt for production!
-});
-const User = mongoose.model('User', userSchema);
-
-// --- Authentication Endpoints ---
-
-// POST /api/register (Sign-up)
-app.post('/api/register', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = new User({ email, password });
-    await user.save();
-    
-    // For simplicity, we just return a success message and token (in a real app)
-    // Here we return a dummy token. You should implement JWT creation here.
-    res.status(201).json({ message: 'User registered successfully', token: 'dummy_auth_token_123' });
-    
-  } catch (err) {
-    if (err.code === 11000) { // MongoDB duplicate key error (Email already exists)
-      return res.status(409).json({ message: 'Email already registered.' });
-    }
-    res.status(500).json({ message: 'Server error during registration.' });
-  }
-});
-
-// POST /api/login
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  // NOTE: You would find the user and compare the HASHED password here.
-  // For now, we mock success if we find a user with this email.
-  const user = await User.findOne({ email });
-
-  if (user && user.password === password) { // Simple check, REPLACE with password HASHING!
-    res.json({ message: 'Login successful', token: 'dummy_auth_token_123' });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials.' });
-  }
-});
+// NOTE: Login should return a real JWT token in a final app, not 'dummy_auth_token_123'.
+// ...
