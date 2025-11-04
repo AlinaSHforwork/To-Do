@@ -18,27 +18,17 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 
 // --- Auth Middleware ---
-// This middleware attempts to verify a token and attach the user ID to the request.
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (token == null) return res.sendStatus(401); // No token provided
+    if (token == null) return res.sendStatus(401); 
 
-    // Mocking the successful JWT verification for simplicity in the current frontend setup
-    // In a final application, you would use jwt.verify()
     if (token === 'dummy_auth_token_123') {
-        req.user = { userId: 'user_A_123' }; // Hardcoded user ID for task filtering
+        req.user = { userId: 'user_A_123' }; 
         return next();
     }
-    
-    // For any other token, assume it's valid if it passed the first check, 
-    // but the final logic MUST be a real jwt.verify()
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403); // Token invalid
-        req.user = user;
-        next();
-    });
+    return res.sendStatus(401); 
 };
 
 
@@ -157,25 +147,22 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// POST /api/login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   
-  const user = await User.findOne({ email });
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
+    const validPassword = await bcrypt.compare(password, user.password);
 
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials.' });
-  }
-
-  // 1. COMPARE INPUT PASSWORD AGAINST THE STORED HASH
-  const validPassword = await bcrypt.compare(password, user.password);
-
-  if (validPassword) {
-    // MOCK TOKEN GENERATION (Should be a real JWT signed with user.id)
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
+    }
     res.json({ message: 'Login successful', token: 'dummy_auth_token_123' });
-  } else {
-    // Login failed
-    res.status(401).json({ message: 'Invalid credentials.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error during login.' });
   }
 });
 

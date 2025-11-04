@@ -17,32 +17,29 @@ function LoginPage({ onLogin }) {
     e.preventDefault();
     setError(''); 
 
-    // 2. Basic Form Validation
+    // 1. Базова валідація
     if (!email || !password) {
       setError('Please enter both email and password.');
       return;
     }
 
     try {
-      // 3. Call your Backend API
       const data = await loginUser(email, password); 
-                 
-      // 4. On Success: Save Token, Update Auth State, and Redirect
-      if (data.token) { 
-        localStorage.setItem('token', data.token); // Save the token for future requests
+      if (data && data.token) { 
+        localStorage.setItem('token', data.token);
+        
         onLogin();
         navigate('/home'); 
+      
       } else {
-        // This is a safety net, but the API should throw an error before this.
-        setError('Login failed. No token received.');
+        setError('Login failed. No token received from server.');
       }
       
     } catch (apiError) {
-      // This handles errors thrown by loginUser (e.g., 401 Invalid credentials, or network errors)
-      setError(apiError.message || 'An error occurred during login. Please check your network.');
-      console.error("Login API Error:", apiError);
+      setError(apiError.message || 'Login failed. Please check your credentials.');
     }
   };
+      
 
   return (
     <Row>

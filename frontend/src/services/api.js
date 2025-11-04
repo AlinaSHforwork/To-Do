@@ -3,6 +3,8 @@
 export const BACKEND_API_URL = "http://localhost:4000/api"; 
 const API_BASE_URL = BACKEND_API_URL;
 
+const getToken = () => localStorage.getItem('token');
+
 export const loginUser = async (email, password) => {
   try {
     const response = await fetch(`${API_BASE_URL}/login`, {
@@ -50,14 +52,13 @@ export const registerUser = async (email, password) => {
   }
 };
 
-const getToken = () => localStorage.getItem('token');
-
 
 export const fetchTasks = async () => {
   const token = getToken();
   if (!token) throw new Error("No authorization token found. Please log in.");
 
   const response = await fetch(`${API_BASE_URL}/tasks`, {
+    method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`, 
     },
@@ -82,8 +83,9 @@ export const addTask = async (taskData) => {
     },
     body: JSON.stringify(taskData),
   });
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown server error.' }));
+    const errorData = await response.json();
     throw new Error(errorData.message || `Failed to add task. Status: ${response.status}`);
   }
   return response.json();
