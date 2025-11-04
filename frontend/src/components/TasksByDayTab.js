@@ -1,69 +1,107 @@
-// src/components/TasksByDayTab.js 
+// src/components/TasksByDayTab.js (FIXED: Add Task Button Logic & Feedback)
 
 import React, { useState } from 'react';
 
-const formatDate = (date) => date.toISOString().split('T')[0];
+// Helper function to format date as YYYY-MM-DD
+const formatDate = (date) => new Date(date).toISOString().split('T')[0];
 
-function TasksByDayTab({ tasks, onAddTask }) { 
-    // 1. STATE FOR DATE NAVIGATION
-    const [currentDay, setCurrentDay] = useState(new Date()); // Tracks the day being viewed
+// Accept the props needed from HomePage
+function TasksByDayTab({ tasks, onAddTask, onToggleComplete, onDeleteTask }) { 
+    
+    // State for Date Navigation
+    const [currentDay, setCurrentDay] = useState(new Date()); 
     
     // States for new task inputs
     const [newTaskText, setNewTaskText] = useState('');
-    const [newTaskDate, setNewTaskDate] = useState(formatDate(new Date())); // Default to today
+    // Ensure the date input always defaults to the currently viewed day for quick entry
+    const [newTaskDate, setNewTaskDate] = useState(formatDate(currentDay)); 
     const [newTaskTags, setNewTaskTags] = useState('');
+    
+    // NEW: State for showing success/error messages
+    const [statusMessage, setStatusMessage] = useState({ type: null, text: '' }); 
     
     // --- Navigation Handlers ---
     const changeDay = (offset) => {
         setCurrentDay(prevDay => {
             const newDay = new Date(prevDay);
             newDay.setDate(newDay.getDate() + offset);
+            setNewTaskDate(formatDate(newDay)); // Update date in input when day changes
             return newDay;
         });
     };
 
+    // Helper to ensure date is in YYYY-MM-DD format (The date input should handle this, but for safety)
+    const normalizeDate = (dateString) => {
+        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateString;
+        }
+        // Assuming DD.MM.YYYY if not standard YYYY-MM-DD
+        const parts = dateString.split(/[\.\-\/]/); 
+        if (parts.length === 3) {
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`; 
+        }
+        return dateString; 
+    };
+    
     // --- Task Creation Handler ---
     const handleAddClick = async (e) => {
         e.preventDefault();
-        // Check if required fields are filled
-        if (!newTaskText || !newTaskDate) return; 
+        setStatusMessage({ type: null, text: '' }); // Clear previous status
 
+        // 1. INPUT VALIDATION
+        if (!newTaskText || !newTaskDate) {
+            setStatusMessage({ type: 'error', text: 'Task title and date are required.' });
+            return; // STOP EXECUTION if fields are empty
+        }
+
+        const normalizedDate = normalizeDate(newTaskDate);
         const tagsArray = newTaskTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 
         const newTask = {
             text: newTaskText,
-            date: newTaskDate, 
+            date: normalizedDate,
             tags: tagsArray,
             completed: false
         };
 
-        const success = await onAddTask(newTask); 
-
-        if (success) {
-            setNewTaskText('');
-            setNewTaskTags('');
+        try {
+            // 2. CALL API (onAddTask returns true on success, false/throws error on failure)
+            const success = await onAddTask(newTask); 
+            
+            if (success) {
+                // 3. SUCCESS: Clear fields and show message
+                setStatusMessage({ type: 'success', text: 'Task added successfully!' });
+                setNewTaskText('');
+                setNewTaskTags('');
+            } else {
+                // Fallback for API returning false
+                 setStatusMessage({ type: 'error', text: 'Failed to add task. Check console for details.' });
+            }
+        } catch (error) {
+            // 4. ERROR: Display error message
+            setStatusMessage({ type: 'error', text: `Error: ${error.message}` });
+            console.error(error);
         }
     };
     
-    // --- Task Filtering ---
-    const currentDayKey = formatDate(currentDay);
-    const tasksForCurrentDay = tasks
-        .filter(task => task.date === currentDayKey)
-        .sort((a, b) => a.completed - b.completed);
-
-    // --- Date Label Formatting ---
-    const dateLabel = currentDay.toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-
+    // ... (rest of filtering and formatting logic) ...
 
     return (
         <div>
-          {/* --- Add New Task Form --- */}
+            {/* ... Day Navigation and Tasks on This Day ... */}
+            
+            <hr/>
+            
+            {/* --- Add New Task Form --- */}
             <h4 className="mt-4 micro-5-regular">Add a New Task</h4>
+            
+            {/* 5. DISPLAY STATUS MESSAGE */}
+            {statusMessage.type === 'error' && <div className="alert alert-danger">{statusMessage.text}</div>}
+            {statusMessage.type === 'success' && <div className="alert alert-success">{statusMessage.text}</div>}
+            
             <form onSubmit={handleAddClick} className="d-flex mb-4 gap-2">
                 <input 
                     type="text" 
@@ -89,44 +127,6 @@ function TasksByDayTab({ tasks, onAddTask }) {
                 />
                 <button type="submit" className="btn btn-primary">Add Task</button>
             </form>
-            
-            {/* --- Day Navigation and Header --- */}
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex align-items-center">
-                    <button onClick={() => changeDay(-1)} className="btn btn-sm btn-outline-secondary me-2">&lt;</button>
-                    <h3 className="m-0 me-3">{dateLabel}</h3>
-                    <button onClick={() => changeDay(1)} className="btn btn-sm btn-outline-secondary">&gt;</button>
-                </div>
-                {/* Optional: Add a 'Today' button */}
-                <button onClick={() => setCurrentDay(new Date())} className="btn btn-sm btn-outline-primary">Today</button>
-            </div>
-            
-            {/* --- Tasks on This Day --- */}
-            <div className="mb-4">
-                <text className='micro-5-regular'>Tasks for This Day</text>
-                {tasksForCurrentDay.length === 0 ? (
-                    <p className="text-muted alert alert-light">No tasks planned for {dateLabel}.</p>
-                ) : (
-                    <ul className="list-group">
-                        {tasksForCurrentDay.map(task => (
-                            <li key={task._id} className={`list-group-item d-flex justify-content-between align-items-center ${task.completed ? 'list-group-item-light text-muted' : ''}`}>
-                                <div>
-                                    {/* You would add a checkbox here and a handleToggleComplete function */}
-                                    <input type="checkbox" checked={task.completed} className="me-2" readOnly />
-                                    <span style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-                                        {task.text}
-                                    </span>
-                                    <small className="ms-3 badge bg-secondary">{task.tags.join(', ')}</small>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
-
-            <hr/>
-            
-            
             
         </div>
     );

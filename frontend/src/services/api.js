@@ -82,10 +82,56 @@ export const addTask = async (taskData) => {
     },
     body: JSON.stringify(taskData),
   });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Unknown server error.' }));
+    throw new Error(errorData.message || `Failed to add task. Status: ${response.status}`);
+  }
+  return response.json();
+};
+// --- TASK CRUD OPERATIONS ---
+
+// 1. Function to Update an existing task
+export const updateTask = async (taskId, updateData) => {
+  const token = getToken();
+  if (!token) throw new Error("No authorization token found. Please log in.");
+
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, 
+    },
+    body: JSON.stringify(updateData),
+  });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to add task.');
+    throw new Error(errorData.message || 'Failed to update task.');
   }
-  return response.json(); 
+  return response.json();
+};
+
+
+// 2. Function to Delete a task
+export const deleteTask = async (taskId) => {
+  const token = getToken();
+  if (!token) throw new Error("No authorization token found. Please log in.");
+
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`, 
+    },
+  });
+
+  // DELETE returns 204 No Content on success, so we check for that status
+  if (response.status === 204) {
+    return true; // Deletion successful
+  }
+  
+  // Handle other non-success codes (e.g., 404, 403)
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to delete task.');
+  }
 };

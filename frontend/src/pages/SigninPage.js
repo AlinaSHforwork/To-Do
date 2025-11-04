@@ -17,6 +17,10 @@ function SigninPage({ onSignup }) {
 
     try {
       const userData = await registerUser(email, password); 
+
+      if (userData.token) { 
+          localStorage.setItem('token', userData.token); 
+      }
  
       onSignup(); 
       navigate('/home');

@@ -1,71 +1,81 @@
-// src/pages/HomePage.js 
-
 import React, { useState, useEffect } from 'react';
 import TasksByDayTab from '../components/TasksByDayTab'; 
 import CalendarTab from '../components/CalendarTab';
 import PomodoroTab from '../components/PomodoroTab'; 
 import TasksByTagTab from '../components/TasksByTagTab';
+import { fetchTasks, addTask, updateTask, deleteTask } from '../services/api';
 
 const getToken = () => localStorage.getItem('token'); 
 
-
-const fetchTasksApi = async () => {
-
-    const token = getToken();    
-    
-    return [
-        { _id: 't1', text: 'Initial Task for Calendar', completed: false, date: '2025-11-05', tags: ['Code', 'Project'] },
-        { _id: 't2', text: 'Task with Tag', completed: true, date: '2025-11-06', tags: ['Personal', 'Urgent'] },
-    ];
-};
-
-const addTaskApi = async (newTask) => {
-    return { ...newTask, _id: Date.now().toString() };
-};
-// --- END MOCK API ---
-
+// --- REMOVE THE MOCK API FUNCTIONS (fetchTasksApi, addTaskApi) ---
 
 function HomePage({ onLogout }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Function to load tasks (now using the real API)
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 2. USE THE REAL FETCH FUNCTION
+      const initialTasks = await fetchTasks();
+      setTasks(initialTasks);
+    } catch (err) {
+      console.error("Failed to load tasks:", err);
+      setError('Failed to load tasks. Check console for details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 1. Fetch initial data on component mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const initialTasks = await fetchTasksApi();
-        setTasks(initialTasks);
-      } catch (err) {
-        setError("Failed to load initial data. Check API.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadData();
   }, []);
 
-  // 2. Function to add a task (passed down to TasksByDayTab)
-  const handleAddTask = async (newTaskData) => {
+  // Handler for adding a new task (used by TasksByDayTab)
+ const handleAddTask = async (newTask) => {
     try {
-      const addedTask = await addTaskApi(newTaskData);
+      const addedTask = await addTask(newTask);
       setTasks(prevTasks => [...prevTasks, addedTask]);
       return true; 
     } catch (err) {
-      setError("Could not add task. Try restarting backend.");
+      console.error("Error adding task:", err); 
+      setError(`Failed to add task: ${err.message}`); 
+      throw err; 
+    }
+};
+  
+  // 4. HANDLER FOR TOGGLE/DELETE (To be passed down)
+  const handleToggleComplete = async (taskId, completedStatus) => {
+    try {
+      // Prepare update data (only send the fields that change)
+      const updatedTask = await updateTask(taskId, { completed: completedStatus });
+      
+      // Update the local state with the new task data
+      setTasks(prevTasks => 
+        prevTasks.map(task => task._id === taskId ? updatedTask : task)
+      );
+      return true;
+    } catch (err) {
+      setError(`Failed to update task: ${err.message}`);
       console.error(err);
       return false;
     }
   };
 
-  if (loading) {
-      return <div className="container text-center mt-5">Loading app data...</div>;
-  }
-  
-  if (error) {
-       return <div className="container text-center mt-5 alert alert-danger">Error: {error}</div>;
-  }
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await deleteTask(taskId);
+      // Remove the task from local state
+      setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
+    } catch (err) {
+      setError(`Failed to delete task: ${err.message}`);
+      console.error(err);
+    }
+  };
 
   return (
     <div className="container col-10 mt-4">
@@ -100,12 +110,21 @@ function HomePage({ onLogout }) {
             
             {/* Tab 3: Tasks by Day - PASSES TASKS AND ADD FUNCTION */}
             <div className="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-                <TasksByDayTab tasks={tasks} onAddTask={handleAddTask} /> {/* Pass state and function */}
+                <TasksByDayTab 
+                    tasks={tasks} 
+                    onAddTask={handleAddTask}
+                    onToggleComplete={handleToggleComplete} 
+                    onDeleteTask={handleDeleteTask} 
+                />
             </div>
             
             {/* Tab 4: Tasks by Tag - PASSES TASKS */}
             <div className="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab4-tab">
-                <TasksByTagTab tasks={tasks} /> {/* Pass tasks down */}
+                <TasksByTagTab 
+                tasks={tasks} 
+                onToggleComplete={handleToggleComplete} // NEW
+                onDeleteTask={handleDeleteTask}
+                />
             </div>
             
             {/* Tab 5: Pomodoro Timer - unchanged */}

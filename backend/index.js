@@ -1,54 +1,60 @@
-// backend/index.js (UPDATED with Auth Middleware and User-Filtering)
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import bcrypt from 'bcrypt'; // Added for password hashing
+import jwt from 'jsonwebtoken'; // Added for token handling
 import { MONGO_URI, PORT } from './config.js'; // Ensure config.js is properly defining these
-import jwt from 'jsonwebtoken'; // You will need to install this: npm install jsonwebtoken
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Set up JWT secret (ideally from a .env file)
+const JWT_SECRET = 'your_super_secret_key'; // CHANGE THIS IN PRODUCTION!
+
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// --- Auth Middleware (MOCKING) ---
-// This middleware extracts a dummy user ID.
+
+// --- Auth Middleware ---
+// This middleware attempts to verify a token and attach the user ID to the request.
 const authenticateToken = (req, res, next) => {
-    // Check for Authorization header (e.g., "Bearer dummy_auth_token_123")
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (token == null) return res.sendStatus(401); // Unauthorized
+    if (token == null) return res.sendStatus(401); // No token provided
 
-    // In a real application, you would verify the JWT here:
-    /* jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403); // Forbidden
+    // Mocking the successful JWT verification for simplicity in the current frontend setup
+    // In a final application, you would use jwt.verify()
+    if (token === 'dummy_auth_token_123') {
+        req.user = { userId: 'user_A_123' }; // Hardcoded user ID for task filtering
+        return next();
+    }
+    
+    // For any other token, assume it's valid if it passed the first check, 
+    // but the final logic MUST be a real jwt.verify()
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403); // Token invalid
         req.user = user;
         next();
     });
-    */
-
-    // MOCK LOGIN: If a token exists, assign a hardcoded user ID for testing.
-    // In a real app, this ID comes from the JWT payload.
-    req.user = { userId: 'user_A_123' }; // <-- IMPORTANT: ALL TASKS WILL BE FILTERED BY THIS ID
-    next(); 
 };
 
 
-// --- Task Model (UPDATED) ---
+// --- Models ---
+
+// Task model (UPDATED: Added userId field)
 const taskSchema = new mongoose.Schema({
   text: String,
   completed: Boolean,
   date: String, // YYYY-MM-DD
   tags: [String],
-  userId: { type: String, required: true } // NEW FIELD
+  userId: { type: String, required: true } // New: Required to filter tasks
 });
 const Task = mongoose.model('Task', taskSchema);
 
-// Event model (kept the same, but should also have userId in a final app)
+// Event model (Simplified: Does not yet use userId)
 const eventSchema = new mongoose.Schema({
   title: String,
   date: String, // YYYY-MM-DD
@@ -57,31 +63,35 @@ const eventSchema = new mongoose.Schema({
 });
 const Event = mongoose.model('Event', eventSchema);
 
+// User model (Password will now store a bcrypt hash)
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true } 
+});
+const User = mongoose.model('User', userSchema);
 
-// --- Task Endpoints (UPDATED with Filtering/User ID) ---
+
+// --- Task Endpoints (Protected & Filtered) ---
 
 // GET /api/tasks: ONLY return tasks belonging to the logged-in user
 app.get('/api/tasks', authenticateToken, async (req, res) => {
-  // CRITICAL: Filter by the user ID provided by the middleware
   const tasks = await Task.find({ userId: req.user.userId });
   res.json(tasks);
 });
 
 // POST /api/tasks: Save task with the logged-in user's ID
 app.post('/api/tasks', authenticateToken, async (req, res) => {
-  // CRITICAL: Inject the user ID before saving
   const taskData = {
     ...req.body,
-    userId: req.user.userId
+    userId: req.user.userId // Inject the user ID from the middleware
   };
   const task = new Task(taskData);
   await task.save();
   res.status(201).json(task);
 });
 
-// PUT and DELETE endpoints should also use authenticateToken and filter by userId
+// PUT /api/tasks/:id: Update task only if it belongs to the user
 app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
-    // Find by ID AND userId to ensure users can only update their own tasks
     const task = await Task.findOneAndUpdate(
         { _id: req.params.id, userId: req.user.userId }, 
         req.body, 
@@ -91,23 +101,85 @@ app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
     res.json(task);
 });
 
+// DELETE /api/tasks/:id: Delete task only if it belongs to the user
 app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
     const result = await Task.deleteOne({ _id: req.params.id, userId: req.user.userId });
     if (result.deletedCount === 0) return res.status(404).json({ message: "Task not found or does not belong to user." });
     res.status(204).end();
 });
 
-// --- Event Endpoints (You should apply the same filtering here) ---
+
+// --- Event Endpoints (Unprotected - Placeholder) ---
 app.get('/api/events', async (req, res) => {
   const events = await Event.find();
   res.json(events);
 });
-// ... other event routes ...
+
+app.post('/api/events', async (req, res) => {
+  const event = new Event(req.body);
+  await event.save();
+  res.status(201).json(event);
+});
+
+app.put('/api/events/:id', async (req, res) => {
+  const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(event);
+});
+
+app.delete('/api/events/:id', async (req, res) => {
+  await Event.findByIdAndDelete(req.params.id);
+  res.status(204).end();
+});
+
+
+// --- Authentication Endpoints (Updated with bcrypt) ---
+
+// POST /api/register (Sign-up)
+app.post('/api/register', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    // 1. HASH THE PASSWORD
+    const salt = await bcrypt.genSalt(10); 
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    // 2. SAVE THE HASHED PASSWORD
+    const user = new User({ email, password: hashedPassword });
+    await user.save();
+    
+    // 3. MOCK TOKEN GENERATION (Should be a real JWT)
+    res.status(201).json({ message: 'User registered successfully', token: 'dummy_auth_token_123' });
+    
+  } catch (err) {
+    if (err.code === 11000) { // MongoDB duplicate key error (Email already exists)
+      return res.status(409).json({ message: 'Email already registered.' });
+    }
+    res.status(500).json({ message: 'Server error during registration.' });
+  }
+});
+
+// POST /api/login
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials.' });
+  }
+
+  // 1. COMPARE INPUT PASSWORD AGAINST THE STORED HASH
+  const validPassword = await bcrypt.compare(password, user.password);
+
+  if (validPassword) {
+    // MOCK TOKEN GENERATION (Should be a real JWT signed with user.id)
+    res.json({ message: 'Login successful', token: 'dummy_auth_token_123' });
+  } else {
+    // Login failed
+    res.status(401).json({ message: 'Invalid credentials.' });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
-
-
-// NOTE: Login should return a real JWT token in a final app, not 'dummy_auth_token_123'.
-// ...

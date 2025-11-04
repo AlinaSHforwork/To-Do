@@ -1,10 +1,10 @@
-// src/pages/LoginPage.js
+// src/pages/LoginPage.js (FIXED: Real API Call)
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import { loginUser } from '../services/api'; 
 
 function LoginPage({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -25,20 +25,21 @@ function LoginPage({ onLogin }) {
 
     try {
       // 3. Call your Backend API
-           
-      // *** MOCK SUCCESS FOR NOW ***
-      const mockSuccess = true; 
-      
-      if (mockSuccess) { 
-        // 4. Update Auth State and Redirect
+      const data = await loginUser(email, password); 
+                 
+      // 4. On Success: Save Token, Update Auth State, and Redirect
+      if (data.token) { 
+        localStorage.setItem('token', data.token); // Save the token for future requests
         onLogin();
         navigate('/home'); 
       } else {
-        setError('Invalid credentials. Please try again.');
+        // This is a safety net, but the API should throw an error before this.
+        setError('Login failed. No token received.');
       }
       
     } catch (apiError) {
-      setError('An error occurred during login. Please check your network.');
+      // This handles errors thrown by loginUser (e.g., 401 Invalid credentials, or network errors)
+      setError(apiError.message || 'An error occurred during login. Please check your network.');
       console.error("Login API Error:", apiError);
     }
   };
