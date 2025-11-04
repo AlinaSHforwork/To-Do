@@ -1,134 +1,150 @@
-// src/components/CalendarTab.js 
+// src/components/CalendarTab.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { Row, Col } from 'react-bootstrap'; // Використаємо сітку Bootstrap
+import '../App.css';
 
-function CalendarTab({ tasks }) { 
+// Форматуємо дату в рядок YYYY-MM-DD
+const formatDate = (date) => date.toISOString().split('T')[0];
+
+function CalendarTab({ tasks }) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
+  // ЦЕ НОВИЙ ВАЖЛИВИЙ СТАН:
+  // null = бічна панель прихована.
+  // Date object = бічна панель відкрита для цієї дати.
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // --- API/Data Logic ---
-  useEffect(() => {
-    const loadEvents = async () => {
-      setLoading(true);
-      try {        
-        // --- MOCK DATA ---
-        const mockEvents = [
-          { _id: 'e1', title: 'Start React Component', date: '2025-11-05', time: '10:00', taskId: null },
-          { _id: 'e2', title: 'Meeting with Alina', date: '2025-11-15', time: '14:30', taskId: null },
-          { _id: 'e3', title: 'Code Review Deadline', date: '2025-11-28', time: '17:00', taskId: null },
-        ];
-        setEvents(mockEvents);
-        // --- END MOCK DATA ---
-        
-      } catch (err) {
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadEvents();
-  }, [currentDate]); 
-
-  // --- Navigation Handlers ---
+  // --- Навігація календарем ---
   const handlePrevMonth = () => {
-    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
-    setSelectedDate(null);
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
+
   const handleNextMonth = () => {
-    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1));
-    setSelectedDate(null);
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
+
   const handleToday = () => {
     setCurrentDate(new Date());
-    setSelectedDate(null);
+    setSelectedDate(new Date()); // Також виділяємо сьогоднішній день
   };
-  
-  // --- Calendar Rendering Logic ---
-  const renderCalendarDays = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();    
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();    
-    const days = [];
 
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`blank-${i}`} className="calendar-day text-muted"></div>);
+  // Мітка для заголовка (напр., "November 2025")
+  const monthYearLabel = useMemo(() => {
+    return currentDate.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  }, [currentDate]);
+
+  // --- ** ГОЛОВНА ЛОГІКА: Рендеринг днів ** ---
+  const renderDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=Sunday, 1=Monday...
+    const daysInMonth = new Date(year, month + 1, 0).getDate(); // Кількість днів у місяці
+
+    const daysArray = [];
+
+    // 1. "Порожні" комірки для днів попереднього місяця
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      daysArray.push(<div key={`pad-${i}`} className="calendar-day empty"></div>);
     }
 
+    // 2. Комірки для днів поточного місяця
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDate = new Date(year, month, day);
-      const dayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;      
-      const dayEvents = events.filter(event => event.date === dayKey);
-      const isToday = new Date().toDateString() === dayDate.toDateString();
-      const isSelected = selectedDate && selectedDate.toDateString() === dayDate.toDateString();
-      const dayTasks = tasks.filter(task => task.date === dayKey);
+      const dateString = formatDate(dayDate);
       
-      days.push(
+      // Перевірки для стилів
+      const isToday = formatDate(new Date()) === dateString;
+      const isSelected = selectedDate && formatDate(selectedDate) === dateString;
+
+      // ** ГОЛ 2: Знаходимо завдання для цього дня **
+      const tasksForDay = tasks.filter(task => task.date === dateString);
+      
+      daysArray.push(
         <div 
-          key={dayKey}
-          className={`text-center py-2 border rounded calendar-day-cell cursor-pointer ${isToday ? 'bg-info bg-opacity-10' : ''} ${isSelected ? 'border-primary border-2' : ''}`}
-          onClick={() => setSelectedDate(dayDate)}
-          style={{ minHeight: '60px' }}
+          key={`day-${day}`} 
+          className={`calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+          // ** ГОЛ 1: Встановлюємо вибрану дату при кліку **
+          onClick={() => setSelectedDate(dayDate)} 
         >
-          <div className="fw-bold">{day}</div>
-          {dayTasks.length > 0 && <small className="badge bg-danger rounded-pill">{dayTasks.length} Task{dayTasks.length > 1 ? 's' : ''}</small>}
+          <span className="day-number">{day}</span>
+          
+          {/* ** ГОЛ 2: Відображення назв завдань у комірці ** */}
+          <div className="tasks-in-cell">
+            {tasksForDay.slice(0, 2).map(task => ( // Показуємо макс. 2 завдання
+              <div key={task._id} className="task-preview" title={task.text}>
+                {task.text}
+              </div>
+            ))}
+            {tasksForDay.length > 2 && ( // Якщо завдань більше
+              <div className="task-preview-more">
+                ...
+              </div>
+            )}
+          </div>
         </div>
       );
     }
-    
-    return days;
-  };
-  
-  const monthYearLabel = currentDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-  });
-  
-  // --- Selected Day Panel Logic ---
-  const renderDayPanel = () => {
-      if (!selectedDate) return null;
 
-      const dayKey = selectedDate.getFullYear() + '-' + String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + String(selectedDate.getDate()).padStart(2, '0');
-      const eventsForSelectedDay = events.filter(event => event.date === dayKey);
-
-      return (
-        <div id="dayPanel" className="mt-3 border rounded p-3">
-          <div className="d-flex justify-content-between align-items-start">
-            <div>
-              <h5 id="selectedDateLabel" className="mb-1">{selectedDate.toDateString()}</h5>
-              <small id="selectedDateInfo" className="text-muted">You have {eventsForSelectedDay.length} event(s).</small>
-            </div>
-            <div>
-              <button onClick={() => setSelectedDate(null)} className="btn btn-sm btn-outline-secondary">Close</button>
-            </div>
-          </div>
-
-          <hr />
-
-          <div id="eventsList" className="mb-3">
-            {eventsForSelectedDay.length === 0 ? (
-                <p>No events for this day.</p>
-            ) : (
-                <ul className="list-unstyled">
-                    {eventsForSelectedDay.map(event => (
-                        <li key={event._id}>
-                            <strong>{event.title}</strong> at {event.time}
-                        </li>
-                    ))}
-                </ul>
-            )}
-          </div>
-          
-          
+    return (
+      <div id="calendar" className="border rounded p-2">
+        <div className="d-grid calendar-day-headers">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
         </div>
-      );
+        <div id="daysGrid" className="d-grid calendar-grid mt-1">
+          {daysArray}
+        </div>
+      </div>
+    );
   };
 
+  // --- ** ГОЛ 1: Рендеринг бічної панелі ** ---
+  const renderTaskSidebar = () => {
+    if (!selectedDate) return null; // Не рендеримо, якщо дата не вибрана
+
+    const dateString = formatDate(selectedDate);
+    const tasksForDay = tasks.filter(task => task.date === dateString);
+
+    return (
+      <div className="task-sidebar border rounded p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="mb-0">
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </h5>
+          <button 
+            className="btn-close" 
+            onClick={() => setSelectedDate(null)} // Кнопка закриття
+          ></button>
+        </div>
+
+        {tasksForDay.length === 0 ? (
+          <div className="alert alert-info">No tasks for this day.</div>
+        ) : (
+          <ul className="list-group">
+            {tasksForDay.map(task => (
+              <li 
+                key={task._id} 
+                className={`list-group-item ${task.completed ? 'list-group-item-success' : ''}`}
+                style={{ textDecoration: task.completed ? 'line-through' : 'none' }}
+              >
+                {task.text}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
+  // --- Основний рендер компонента ---
   return (
-    <div className="calendar-wrap">
-      {/* Navigation Buttons */}
-      <div className="d-flex justify-content-between align-items-center mb-2">
+    <div className="py-3">
+      {/* Заголовок та навігація */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <button onClick={handlePrevMonth} className="btn btn-sm btn-outline-secondary me-2">&lt;</button>
           <button onClick={handleNextMonth} className="btn btn-sm btn-outline-secondary">&gt;</button>
@@ -139,28 +155,20 @@ function CalendarTab({ tasks }) {
         </div>
       </div>
 
-      {/* Calendar Grid Structure */}
-      <div id="calendar" className="border rounded p-2">
-        {/* Day Headers */}
-        <div className="d-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', display: 'grid' }}>
-          <div className="text-center fw-bold py-1">Sun</div>
-          <div className="text-center fw-bold py-1">Mon</div>
-          <div className="text-center fw-bold py-1">Tue</div>
-          <div className="text-center fw-bold py-1">Wed</div>
-          <div className="text-center fw-bold py-1">Thu</div>
-          <div className="text-center fw-bold py-1">Fri</div>
-          <div className="text-center fw-bold py-1">Sat</div>
-        </div>
-        
-        {/* Render the Days here */}
-        <div id="daysGrid" className="d-grid mt-1" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', display: 'grid' }}>
-            {loading ? <div className="text-center py-5 col-span-7">Loading Calendar...</div> : renderCalendarDays()}
-        </div>
-      </div>
-      
-      {/* Selected Day Panel */}
-      {renderDayPanel()}
+      {/* ** ГОЛ 1: Сітка Bootstrap для календаря та бічної панелі ** */}
+      <Row>
+        {/* Колонка календаря: 8/12, якщо щось вибрано, або 12/12, якщо ні */}
+        <Col md={selectedDate ? 8 : 12} className="calendar-container">
+          {renderDays()}
+        </Col>
 
+        {/* Колонка бічної панелі: з'являється, лише якщо selectedDate існує */}
+        {selectedDate && (
+          <Col md={4} className="sidebar-container">
+            {renderTaskSidebar()}
+          </Col>
+        )}
+      </Row>
     </div>
   );
 }

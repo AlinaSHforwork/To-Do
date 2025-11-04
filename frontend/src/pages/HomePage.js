@@ -35,47 +35,52 @@ function HomePage({ onLogout }) {
     loadData();
   }, []);
 
-  // Handler for adding a new task (used by TasksByDayTab)
- const handleAddTask = async (newTask) => {
+ const handleAddTask = async (taskData) => {
     try {
-      const addedTask = await addTask(newTask);
-      setTasks(prevTasks => [...prevTasks, addedTask]);
-      return true; 
-    } catch (err) {
-      console.error("Error adding task:", err); 
-      setError(`Failed to add task: ${err.message}`); 
-      throw err; 
-    }
-};
-  
-  // 4. HANDLER FOR TOGGLE/DELETE (To be passed down)
-  const handleToggleComplete = async (taskId, completedStatus) => {
-    try {
-      // Prepare update data (only send the fields that change)
-      const updatedTask = await updateTask(taskId, { completed: completedStatus });
+      const newTask = await addTask(taskData);      
+      setTasks(prevTasks => [...prevTasks, newTask]);      
+      return { success: true, data: newTask };
       
-      // Update the local state with the new task data
-      setTasks(prevTasks => 
-        prevTasks.map(task => task._id === taskId ? updatedTask : task)
-      );
-      return true;
     } catch (err) {
-      setError(`Failed to update task: ${err.message}`);
-      console.error(err);
-      return false;
+      console.error("Failed to add task:", err);
+      return { success: false, message: err.message };
+    }
+  };
+  
+const handleToggleComplete = async (taskId, newCompletedStatus) => {
+    try {
+      const updatedTask = await updateTask(taskId, { completed: newCompletedStatus });
+      
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task._id === taskId ? updatedTask : task
+        )
+      );
+      
+    } catch (err) {
+      console.error("Failed to toggle task:", err);
     }
   };
 
-  const handleDeleteTask = async (taskId) => {
+const handleDeleteTask = async (taskId) => {
+
+    if (!window.confirm("Are you sure you want to delete this task?")) {
+     return;
+    }    
     try {
       await deleteTask(taskId);
-      // Remove the task from local state
-      setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
+      
+      setTasks(prevTasks => 
+        prevTasks.filter(task => task._id !== taskId)
+      );
+      
     } catch (err) {
-      setError(`Failed to delete task: ${err.message}`);
-      console.error(err);
+      console.error("Failed to delete task:", err);
     }
   };
+
+  if (loading) return <div className="container mt-5 text-center">Loading tasks...</div>;
+  if (error) return <div className="container mt-5 alert alert-danger">{error}</div>;
 
   return (
     <div className="container col-10 mt-4">
@@ -114,7 +119,7 @@ function HomePage({ onLogout }) {
                     tasks={tasks} 
                     onAddTask={handleAddTask}
                     onToggleComplete={handleToggleComplete} 
-                    onDeleteTask={handleDeleteTask} 
+                    onDeleteTask={handleDeleteTask}
                 />
             </div>
             

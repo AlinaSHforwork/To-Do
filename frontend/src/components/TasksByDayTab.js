@@ -1,6 +1,6 @@
-// src/components/TasksByDayTab.js (FIXED: Add Task Button Logic & Feedback)
+// src/components/TasksByDayTab.js
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 // Helper function to format date as YYYY-MM-DD
 const formatDate = (date) => new Date(date).toISOString().split('T')[0];
@@ -13,11 +13,10 @@ function TasksByDayTab({ tasks, onAddTask, onToggleComplete, onDeleteTask }) {
     
     // States for new task inputs
     const [newTaskText, setNewTaskText] = useState('');
-    // Ensure the date input always defaults to the currently viewed day for quick entry
     const [newTaskDate, setNewTaskDate] = useState(formatDate(currentDay)); 
     const [newTaskTags, setNewTaskTags] = useState('');
     
-    // NEW: State for showing success/error messages
+    // State for showing success/error messages
     const [statusMessage, setStatusMessage] = useState({ type: null, text: '' }); 
     
     // --- Navigation Handlers ---
@@ -30,102 +29,160 @@ function TasksByDayTab({ tasks, onAddTask, onToggleComplete, onDeleteTask }) {
         });
     };
 
-    // Helper to ensure date is in YYYY-MM-DD format (The date input should handle this, but for safety)
-    const normalizeDate = (dateString) => {
-        if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dateString;
-        }
-        // Assuming DD.MM.YYYY if not standard YYYY-MM-DD
-        const parts = dateString.split(/[\.\-\/]/); 
-        if (parts.length === 3) {
-            const day = parts[0].padStart(2, '0');
-            const month = parts[1].padStart(2, '0');
-            const year = parts[2];
-            return `${year}-${month}-${day}`; 
-        }
-        return dateString; 
-    };
-    
-    // --- Task Creation Handler ---
+    // Helper to format the displayed date title
+    const formattedCurrentDay = useMemo(() => {
+        return currentDay.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
+        });
+    }, [currentDay]);
+
+    // --- Add Task Handler ---
     const handleAddClick = async (e) => {
         e.preventDefault();
-        setStatusMessage({ type: null, text: '' }); // Clear previous status
-
-        // 1. INPUT VALIDATION
+        
         if (!newTaskText || !newTaskDate) {
-            setStatusMessage({ type: 'error', text: 'Task title and date are required.' });
-            return; // STOP EXECUTION if fields are empty
+            setStatusMessage({ type: 'error', text: 'Please fill in at least the task title and date.' });
+            return;
         }
 
-        const normalizedDate = normalizeDate(newTaskDate);
-        const tagsArray = newTaskTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        // Convert tags from "tag1, tag2" to ["tag1", "tag2"]
+        const tagsArray = newTaskTags.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0);
 
-        const newTask = {
+        const taskData = {
             text: newTaskText,
-            date: normalizedDate,
+            date: newTaskDate,
             tags: tagsArray,
             completed: false
         };
 
-        try {
-            // 2. CALL API (onAddTask returns true on success, false/throws error on failure)
-            const success = await onAddTask(newTask); 
-            
-            if (success) {
-                // 3. SUCCESS: Clear fields and show message
-                setStatusMessage({ type: 'success', text: 'Task added successfully!' });
-                setNewTaskText('');
-                setNewTaskTags('');
-            } else {
-                // Fallback for API returning false
-                 setStatusMessage({ type: 'error', text: 'Failed to add task. Check console for details.' });
-            }
-        } catch (error) {
-            // 4. ERROR: Display error message
-            setStatusMessage({ type: 'error', text: `Error: ${error.message}` });
-            console.error(error);
+        const result = await onAddTask(taskData);
+        
+        if (result.success) {
+            setStatusMessage({ type: 'success', text: 'Task added successfully!' });
+            // Clear inputs
+            setNewTaskText('');
+            setNewTaskTags('');
+            // Reset date input to the currently viewed day (in case it was changed)
+            setNewTaskDate(formatDate(currentDay));
+        } else {
+            setStatusMessage({ type: 'error', text: `Failed to add task: ${result.message}` });
         }
+        
+        // Hide message after 3 seconds
+        setTimeout(() => setStatusMessage({ type: null, text: '' }), 3000);
     };
-    
-    // ... (rest of filtering and formatting logic) ...
 
+    // --- *** НОВА ЧАСТИНА: Фільтрація та рендеринг завдань *** ---
+
+    // 1. Filter tasks for the currently selected day
+    const filteredTasks = useMemo(() => {
+        const currentDayStr = formatDate(currentDay);
+        return tasks.filter(task => task.date === currentDayStr);
+    }, [tasks, currentDay]);
+
+    // 2. Render the list of filtered tasks
+    const renderTaskList = () => {
+        if (filteredTasks.length === 0) {
+            return <div className="alert alert-info mt-3">No tasks for this day.</div>;
+        }
+
+        return (
+            <ul className="list-group mt-3">
+                {filteredTasks.map(task => (
+                    <li 
+                        key={task._id} 
+                        className={`list-group-item d-flex justify-content-between align-items-center ${task.completed ? 'list-group-item-success' : ''}`}
+                    >
+                        <div className="form-check">
+                            <input 
+                                className="form-check-input" 
+                                type="checkbox" 
+                                checked={task.completed}
+                                onChange={() => onToggleComplete(task._id, !task.completed)}
+                                id={`task-${task._id}`}
+                            />
+                            <label 
+                                className="form-check-label" 
+                                htmlFor={`task-${task._id}`}
+                                style={{ textDecoration: task.completed ? 'line-through' : 'none' }}
+                            >
+                                {task.text}
+                            </label>
+                        </div>
+                        
+                        <div>
+                            {/* Show tags */}
+                            {task.tags && task.tags.map(tag => (
+                                <span key={tag} className="badge bg-secondary me-2">{tag}</span>
+                            ))}
+                            
+                            {/* Delete Button */}
+                            <button 
+                                className="btn btn-danger btn-sm"
+                                onClick={() => onDeleteTask(task._id)}
+                            >
+                                &times; {/* 'x' symbol */}
+                            </button>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
+    // --- Main Component Render ---
     return (
-        <div>
-            {/* ... Day Navigation and Tasks on This Day ... */}
-            
-            <hr/>
-            
-            {/* --- Add New Task Form --- */}
+        <div className="py-3">
+            {/* 1. Day Navigation */}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <button onClick={() => changeDay(-1)} className="btn btn-outline-secondary">&lt; Prev Day</button>
+                <h3 className="mb-0 micro-5-regular">{formattedCurrentDay}</h3>
+                <button onClick={() => changeDay(1)} className="btn btn-outline-secondary">Next Day &gt;</button>
+            </div>
+
+            {/* 2. *** ВИКЛИК НОВОЇ ФУНКЦІЇ: Список завдань *** */}
+            {renderTaskList()}
+
+            {/* 3. Add New Task Form */}
             <h4 className="mt-4 micro-5-regular">Add a New Task</h4>
             
-            {/* 5. DISPLAY STATUS MESSAGE */}
             {statusMessage.type === 'error' && <div className="alert alert-danger">{statusMessage.text}</div>}
             {statusMessage.type === 'success' && <div className="alert alert-success">{statusMessage.text}</div>}
             
-            <form onSubmit={handleAddClick} className="d-flex mb-4 gap-2">
-                <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Task title..." 
-                    value={newTaskText}
-                    onChange={(e) => setNewTaskText(e.target.value)}
-                    required 
-                />
-                <input 
-                    type="date" 
-                    className="form-control" 
-                    value={newTaskDate}
-                    onChange={(e) => setNewTaskDate(e.target.value)}
-                    required 
-                />
-                <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Tags (comma separated)" 
-                    value={newTaskTags}
-                    onChange={(e) => setNewTaskTags(e.target.value)}
-                />
-                <button type="submit" className="btn btn-primary">Add Task</button>
+            <form onSubmit={handleAddClick} className="mb-4">
+                <div className="input-group mb-2">
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Task title..." 
+                        value={newTaskText}
+                        onChange={(e) => setNewTaskText(e.target.value)}
+                        required 
+                    />
+                </div>
+                <div className="input-group mb-2">
+                     <span className="input-group-text">Date</span>
+                    <input 
+                        type="date" 
+                        className="form-control" 
+                        value={newTaskDate}
+                        onChange={(e) => setNewTaskDate(e.target.value)}
+                        required 
+                    />
+                     <span className="input-group-text">Tags</span>
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Tags (comma separated)" 
+                        value={newTaskTags}
+                        onChange={(e) => setNewTaskTags(e.target.value)}
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary w-100">Add Task</button>
             </form>
             
         </div>
