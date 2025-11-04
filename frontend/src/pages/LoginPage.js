@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
 
 function LoginPage({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -41,8 +44,9 @@ function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '400px' }}>
-      <h2 className="text-center mb-4">Log In</h2>
+    <Row>
+    <Col className="containerLog md={{ span: 12, offset: 3 }}" >
+      <h2 className="text-center micro-5-regular mb-4">Log In</h2>
       
       {/* Display Error Message */}
       {error && <div className="alert alert-danger">{error}</div>}
@@ -82,9 +86,10 @@ function LoginPage({ onLogin }) {
       
       {/* Link to Sign-up page */}
       <p className="text-center mt-3">
-        Don't have an account? <Link to="/signin">Sign Up</Link>
+        Don't have an account? <Link to="/signin" className="btn btn-primary">Sign Up</Link>
       </p>
-    </div>
+    </Col>
+    </Row>
   );
 }
 

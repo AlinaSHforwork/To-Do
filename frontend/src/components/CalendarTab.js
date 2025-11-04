@@ -133,7 +133,7 @@ function CalendarTab({ tasks }) {
           <button onClick={handlePrevMonth} className="btn btn-sm btn-outline-secondary me-2">&lt;</button>
           <button onClick={handleNextMonth} className="btn btn-sm btn-outline-secondary">&gt;</button>
         </div>
-        <h4 id="monthYear" className="m-0">{monthYearLabel}</h4>
+        <h4 id="monthYear" className="m-0 micro-5-regular">{monthYearLabel}</h4>
         <div>
           <button onClick={handleToday} className="btn btn-sm btn-outline-primary">Today</button>
         </div>

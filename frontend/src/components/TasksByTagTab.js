@@ -69,7 +69,7 @@ function TasksByTagTab({ tasks }) {
 
   return (
     <div>
-      <h2>Tasks by Tag</h2>
+      <text className='micro-5-regular'>Tasks by Tag</text>
       <p className="small text-muted">Click a tag to filter tasks, or select "All".</p>
       
       {renderTags()}

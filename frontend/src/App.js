@@ -7,6 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage'; 
 import LoginPage from './pages/LoginPage';
 import SigninPage from './pages/SigninPage'; 
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(

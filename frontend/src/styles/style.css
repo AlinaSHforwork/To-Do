@@ -15,6 +15,7 @@ body {
   font-family: "Micro 5", sans-serif;
   font-weight: 400;
   font-style: normal;
+  font-size: 6ch;
 }
 
 
@@ -23,6 +24,16 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 860px;
+    min-height: 500px;
+}
+
+.containerLog {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
     min-height: 500px;
 }
 

@@ -106,7 +106,7 @@ function PomodoroTab() {
   
   return (
     <div className="pomodoro-wrap p-3">
-      <h2 className="text-center">{session} Timer</h2>
+      <h2 className="text-center micro-5-regular">{session} Timer</h2>
       
       {/* Timer Display */}
       <div className="timer-display text-center mb-3">

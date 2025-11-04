@@ -63,7 +63,7 @@ function TasksByDayTab({ tasks, onAddTask }) {
     return (
         <div>
           {/* --- Add New Task Form --- */}
-            <h4 className="mt-4">Add a New Task</h4>
+            <h4 className="mt-4 micro-5-regular">Add a New Task</h4>
             <form onSubmit={handleAddClick} className="d-flex mb-4 gap-2">
                 <input 
                     type="text" 
@@ -103,7 +103,7 @@ function TasksByDayTab({ tasks, onAddTask }) {
             
             {/* --- Tasks on This Day --- */}
             <div className="mb-4">
-                <h4>Tasks for This Day</h4>
+                <text className='micro-5-regular'>Tasks for This Day</text>
                 {tasksForCurrentDay.length === 0 ? (
                     <p className="text-muted alert alert-light">No tasks planned for {dateLabel}.</p>
                 ) : (

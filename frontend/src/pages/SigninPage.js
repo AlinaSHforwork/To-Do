@@ -27,8 +27,8 @@ function SigninPage({ onSignup }) {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '400px' }}>
-      <h2 className="text-center mb-4">Create Account</h2>
+    <div className="containerLog mt-5">
+      <h2 className="text-center micro-5-regular mb-4">Create Account</h2>
       
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -48,7 +48,7 @@ function SigninPage({ onSignup }) {
         </div>
 
         {/* Password Input */}
-        <div className="mb-3">
+        <div className="mb-3 ">
           <label htmlFor="passwordInput" className="form-label">Password</label>
           <input 
             type="password" 
@@ -60,14 +60,14 @@ function SigninPage({ onSignup }) {
           />
         </div>
 
-        <button type="submit" className="btn btn-success w-100">
+        <button type="submit" className="btn btn-primary w-100">
           Sign Up
         </button>
       </form>
       
       {/* Link back to Login page */}
       <p className="text-center mt-3">
-        Already have an account? <Link to="/login">Log In</Link>
+        Already have an account? <Link to="/login" className="btn btn-primary">Log In</Link>
       </p>
     </div>
   );
