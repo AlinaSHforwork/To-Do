@@ -1,55 +1,25 @@
-// src/pages/HomePage.js (LIFTING STATE UP - FINAL VERSION)
+// src/pages/HomePage.js 
 
 import React, { useState, useEffect } from 'react';
 import TasksByDayTab from '../components/TasksByDayTab'; 
 import CalendarTab from '../components/CalendarTab';
 import PomodoroTab from '../components/PomodoroTab'; 
-import TasksByTagTab from '../components/TasksByTagTab'; // Ensure this is imported
+import TasksByTagTab from '../components/TasksByTagTab';
 
-// --- MOCK/SIMPLIFIED API FUNCTIONS (For demonstration) ---
-// In your real application, these should be in src/services/api.js
 const getToken = () => localStorage.getItem('token'); 
 
-// Fetch function must send the Authorization header
-const fetchTasksApi = async () => {
-    // Check if the backend auth fix was applied. If not, this will fail.
-    const token = getToken();
-    // Use the actual fetch call from your api.js once the backend auth is fixed
-    // For now, we return mock data or an empty array
-    
-    // Example of a minimal fetch (assuming backend auth fix from previous step):
-    /*
-    const response = await fetch('http://localhost:4000/api/tasks', {
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!response.ok) throw new Error('Failed to fetch tasks.');
-    return response.json();
-    */
 
+const fetchTasksApi = async () => {
+
+    const token = getToken();    
+    
     return [
-        // Mock initial data
         { _id: 't1', text: 'Initial Task for Calendar', completed: false, date: '2025-11-05', tags: ['Code', 'Project'] },
         { _id: 't2', text: 'Task with Tag', completed: true, date: '2025-11-06', tags: ['Personal', 'Urgent'] },
     ];
 };
 
 const addTaskApi = async (newTask) => {
-    // Call the actual POST endpoint
-    /*
-    const token = getToken();
-    const response = await fetch('http://localhost:4000/api/tasks', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify(newTask)
-    });
-    if (!response.ok) throw new Error('Failed to add task.');
-    return response.json();
-    */
-    
-    // Mock successful creation (assign a temporary ID)
     return { ...newTask, _id: Date.now().toString() };
 };
 // --- END MOCK API ---
@@ -80,13 +50,12 @@ function HomePage({ onLogout }) {
   const handleAddTask = async (newTaskData) => {
     try {
       const addedTask = await addTaskApi(newTaskData);
-      // Update the centralized state array with the new task
       setTasks(prevTasks => [...prevTasks, addedTask]);
-      return true; // Indicate success
+      return true; 
     } catch (err) {
       setError("Could not add task. Try restarting backend.");
       console.error(err);
-      return false; // Indicate failure
+      return false;
     }
   };
 

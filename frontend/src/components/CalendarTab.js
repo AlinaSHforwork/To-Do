@@ -1,24 +1,18 @@
-// src/components/CalendarTab.js (FULL LOGIC)
+// src/components/CalendarTab.js 
 
 import React, { useState, useEffect } from 'react';
-
-// NOTE: You must import your API service for events here
-// import { fetchEvents, addEvent } from '../services/api'; 
 
 function CalendarTab({ tasks }) { 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(null); // Date object for selected day
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // --- API/Data Logic ---
   useEffect(() => {
-    // This is where you call the API. For now, we use mock data.
     const loadEvents = async () => {
       setLoading(true);
-      try {
-        // const fetchedEvents = await fetchEvents(currentDate.getFullYear(), currentDate.getMonth());
-        
+      try {        
         // --- MOCK DATA ---
         const mockEvents = [
           { _id: 'e1', title: 'Start React Component', date: '2025-11-05', time: '10:00', taskId: null },
@@ -29,7 +23,6 @@ function CalendarTab({ tasks }) {
         // --- END MOCK DATA ---
         
       } catch (err) {
-        // setError("Failed to load events. Check API connection.");
       } finally {
         setLoading(false);
       }
@@ -54,27 +47,19 @@ function CalendarTab({ tasks }) {
   // --- Calendar Rendering Logic ---
   const renderCalendarDays = () => {
     const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Get the first day of the month (0=Sun, 6=Sat)
+    const month = currentDate.getMonth();    
     const firstDay = new Date(year, month, 1).getDay();
-    // Get the total number of days in the current month
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();    
     const days = [];
 
-    // 1. Add blank tiles for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`blank-${i}`} className="calendar-day text-muted"></div>);
     }
 
-    // 2. Add actual days
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDate = new Date(year, month, day);
-      const dayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      
+      const dayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;      
       const dayEvents = events.filter(event => event.date === dayKey);
-
       const isToday = new Date().toDateString() === dayDate.toDateString();
       const isSelected = selectedDate && selectedDate.toDateString() === dayDate.toDateString();
       const dayTasks = tasks.filter(task => task.date === dayKey);
@@ -95,7 +80,6 @@ function CalendarTab({ tasks }) {
     return days;
   };
   
-  // Helper to format the Month/Year display
   const monthYearLabel = currentDate.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',

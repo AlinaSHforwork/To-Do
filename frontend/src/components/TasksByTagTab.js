@@ -1,17 +1,13 @@
 // src/components/TasksByTagTab.js
 
 import React, { useState, useEffect } from 'react';
-// import { fetchTasks } from '../services/api'; // Use this after API is connected
 
 function TasksByTagTab({ tasks }) {
-  //const [tasks, setTasks] = useState([]);
-  //const [loading, setLoading] = useState(true);
-  //const [error, setError] = useState(null);
+
   const [selectedTag, setSelectedTag] = useState('All'); 
 // --- Tag Filtering Logic ---
   const getAllUniqueTags = () => {
     const tags = new Set(['All']);
-    // Uses the 'tasks' prop
     tasks.forEach(task => { 
       task.tags.forEach(tag => tags.add(tag));
     });
@@ -22,7 +18,6 @@ function TasksByTagTab({ tasks }) {
     if (selectedTag === 'All') {
       return true;
     }
-    // Filter tasks that include the selected tag
     return task.tags.includes(selectedTag);
   });
   
@@ -45,7 +40,6 @@ function TasksByTagTab({ tasks }) {
   );
 
   const renderTaskList = () => {
-    // No need for loading or error checks, as HomePage handles it!
     if (tasks.length === 0) return <div className="alert alert-info mt-3">No tasks have been created yet.</div>;
     
     if (filteredTasks.length === 0) return <div className="alert alert-warning mt-3">No tasks found for tag: **{selectedTag}**.</div>;

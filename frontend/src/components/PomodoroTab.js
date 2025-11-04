@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-// Default settings (matching your template inputs)
 const DEFAULT_WORK = 25;
 const DEFAULT_SHORT_BREAK = 5;
 const DEFAULT_LONG_BREAK = 15;
@@ -33,7 +32,6 @@ function PomodoroTab() {
   // --- Core Timer Logic (useEffect) ---
   useEffect(() => {
     if (isRunning) {
-      // Set the interval
       timerRef.current = setInterval(() => {
         if (seconds > 0) {
           setSeconds(prevSeconds => prevSeconds - 1);
@@ -41,16 +39,14 @@ function PomodoroTab() {
           setMinutes(prevMinutes => prevMinutes - 1);
           setSeconds(59);
         } else {
-          // Timer reached 0:00 -> Transition to the next session
           clearInterval(timerRef.current);
           handleSessionEnd();
         }
       }, 1000);
     }
     
-    // Cleanup function: clears the interval when the component unmounts or isRunning changes
     return () => clearInterval(timerRef.current);
-  }, [isRunning, minutes, seconds]); // Only runs when these state values change
+  }, [isRunning, minutes, seconds]);
 
   // --- Session Transition Logic ---
   const handleSessionEnd = () => {
@@ -69,7 +65,6 @@ function PomodoroTab() {
         nextMinutes = shortBreakMinutes;
       }
     } else {
-      // If it was a break, go back to work
       nextSession = SESSION_TYPES.WORK;
       nextMinutes = workMinutes;
     }
@@ -77,7 +72,7 @@ function PomodoroTab() {
     setSession(nextSession);
     setMinutes(nextMinutes);
     setSeconds(0);
-    setIsRunning(true); // Auto-start the next session
+    setIsRunning(true);
     
     // Notification logic (you can add a browser notification here)
     console.log(`Time for ${nextSession}!`);
@@ -176,8 +171,6 @@ function PomodoroTab() {
             <input 
               type="number" min="1" className="form-control form-control-sm"
               defaultValue={SESSIONS_BEFORE_LONG} 
-              // Note: For simplicity, we keep this input uncontrolled (defaultValue)
-              // but ideally, this would also be state-controlled.
             />
           </div>
         </div>

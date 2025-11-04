@@ -1,8 +1,7 @@
-// src/components/TasksByDayTab.js (FINAL VERSION with Day Navigation)
+// src/components/TasksByDayTab.js 
 
 import React, { useState } from 'react';
 
-// Helper function to format date as YYYY-MM-DD
 const formatDate = (date) => date.toISOString().split('T')[0];
 
 function TasksByDayTab({ tasks, onAddTask }) { 
@@ -33,18 +32,16 @@ function TasksByDayTab({ tasks, onAddTask }) {
 
         const newTask = {
             text: newTaskText,
-            date: newTaskDate, // Ensure this is in YYYY-MM-DD format
+            date: newTaskDate, 
             tags: tagsArray,
             completed: false
         };
 
-        const success = await onAddTask(newTask); // Call the centralized function
+        const success = await onAddTask(newTask); 
 
         if (success) {
-            // Clear the input fields on success
             setNewTaskText('');
             setNewTaskTags('');
-            // Keep the newTaskDate as the currently viewed day's date for quick entry
         }
     };
     
@@ -52,7 +49,7 @@ function TasksByDayTab({ tasks, onAddTask }) {
     const currentDayKey = formatDate(currentDay);
     const tasksForCurrentDay = tasks
         .filter(task => task.date === currentDayKey)
-        .sort((a, b) => a.completed - b.completed); // Sort uncompleted tasks first
+        .sort((a, b) => a.completed - b.completed);
 
     // --- Date Label Formatting ---
     const dateLabel = currentDay.toLocaleDateString('en-US', {

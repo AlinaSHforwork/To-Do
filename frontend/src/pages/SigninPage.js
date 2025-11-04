@@ -15,21 +15,13 @@ function SigninPage({ onSignup }) {
     e.preventDefault();
     setError('');
 
-    // (Add more robust client-side validation here if necessary)
-
     try {
-      // 1. CALL THE REGISTRATION API
       const userData = await registerUser(email, password); 
-      
-      // 2. Handle successful registration (often, successful sign-up auto-logs the user in)
-      // Example: localStorage.setItem('token', userData.token); 
-      
-      // 3. Update Auth State and Redirect
-      onSignup(); // Tells App.js that authentication succeeded
-      navigate('/home'); // Redirects to the protected Home page
+ 
+      onSignup(); 
+      navigate('/home');
       
     } catch (apiError) {
-      // 4. Handle errors (e.g., "User already exists")
       setError(apiError.message || 'Sign up failed. Please try a different email.');
     }
   };
