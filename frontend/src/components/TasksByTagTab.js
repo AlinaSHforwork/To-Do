@@ -101,12 +101,11 @@ function TasksByTagTab({ tasks, onToggleComplete, onDeleteTask }) {
   };
 
   return (
-    <div className="py-3">
-      <h3 className='micro-5-regular'>Tasks by Tag</h3>
+    <div>
+      <h3 className='mb-3'>Tasks by Tag</h3>
       {renderTags()}
       {renderTaskList()}
     </div>
   );
 }
-
 export default TasksByTagTab;

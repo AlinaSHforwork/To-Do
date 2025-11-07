@@ -1,0 +1,177 @@
+
+/* --- 1. Головний макет (Sidebar + Контент) --- */
+.home-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- 2. Бічне меню (Sidebar) --- */
+.home-sidebar {
+  flex: 0 0 280px; /* Фіксована ширина 280px */
+  background-color: #000;
+  color: white;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Розділяє лого/навігацію та кнопку виходу */
+}
+
+.sidebar-header {
+  font-family: 'Micro 5', sans-serif; /* Використовуємо ваш шрифт */
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #fff;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 0.5rem;
+}
+
+/* Стиль для посилань навігації */
+.sidebar-nav a {
+  display: block;
+  color: #999; /* Сірий для неактивних */
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.75rem 0;
+  transition: color 0.2s ease;
+  cursor: pointer; /* Додаємо курсор */
+}
+
+.sidebar-nav a:hover {
+  color: #fff; /* Білий при наведенні */
+}
+
+.sidebar-nav a.active {
+  color: #fff; /* Білий для активного посилання */
+  font-weight: 700;
+}
+
+/* Кнопка Log Out (в самому низу) */
+.logout-btn {
+  background-color: #222; /* Темно-сірий */
+  border: 1px solid #444;
+  color: #fff;
+  width: 100%;
+  padding: 0.75rem;
+  text-align: left;
+  border-radius: 6px;
+}
+
+.logout-btn:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+
+/* --- 3. Область контенту --- */
+.home-content {
+  flex: 1; /* Займає решту місця */
+  background-color: #f4f7f6; /* Дуже світло-сірий фон */
+  padding: 3rem;
+  overflow-y: auto; /* Додає прокрутку, якщо контент довгий */
+}
+
+.home-content form.d-flex {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  align-items: flex-end;
+}
+
+/* Робимо поля вводу гнучкими */
+.home-content form.d-flex .form-control {
+  flex: 1; /* Дозволяє полям рости */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.home-content form.d-flex .btn-primary {
+  background-color: #000;
+  border-color: #000;
+  flex-shrink: 0; /* Запобігає стисканню кнопки */
+}
+
+/* Cписок завдань (TasksByDayTab, TasksByTagTab) */
+.home-content .list-group-item {
+  background-color: #fff;
+  border: 1px solid #e9e9e9;
+  margin-bottom: 8px; /* Додаємо простір між завданнями */
+  border-radius: 6px !important; /* !important для перевизначення Bootstrap */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+/* Календар (CalendarTab) */
+.home-content #calendar, .home-content .task-sidebar {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Кнопки тегів (TasksByTagTab) */
+.home-content #tagFilterList .btn {
+  border-radius: 15px; /* Більш круглі */
+  padding: 5px 15px;
+}
+
+.task-form-card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-top: 2rem;
+}
+
+.task-form-card .form-control {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.task-form-card .input-group-text {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+}
+
+/* Кнопка "Add Task" */
+.task-form-card .btn-primary {
+  background-color: #000;
+  border-color: #000;
+  width: 100%;
+  padding: 0.75rem;
+}
+
+/* Cтилізація для PomodoroTab */
+.pomodoro-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  max-width: 500px; /* Обмежуємо ширину таймера */
+  margin: 0 auto; /* Центруємо */
+  text-align: center;
+}
+
+.pomodoro-timer {
+  font-size: 6rem; /* Великі цифри */
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.pomodoro-controls .btn {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 5px;
+}
+
+.pomodoro-controls .btn-dark {
+  background-color: #000;
+  border-color: #000;
+}

@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage'; 
 import LoginPage from './pages/LoginPage';
 import SigninPage from './pages/SigninPage'; 
+import LandingPage from './pages/LandingPage';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
@@ -27,17 +28,29 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        
-        {/* Pass handleLogout to the HomePage so it can be used inside */}
+      <Routes>        
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
           <Route path="/home" element={<HomePage onLogout={handleLogout} />} />
         </Route>
-        
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        {/* LoginPage and SigninPage should receive handleLoginSuccess and the actual token */}
-        <Route path="/login" element={<LoginPage onLogin={handleLoginSuccess} />} />
-        <Route path="/signin" element={<SigninPage onSignup={handleLoginSuccess} />} />
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <LandingPage />
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <LoginPage onLogin={handleLoginSuccess} />
+          } 
+        />
+        <Route 
+          path="/signin" 
+          element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <SigninPage onSignup={handleLoginSuccess} />
+          } 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </Router>

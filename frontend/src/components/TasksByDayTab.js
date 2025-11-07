@@ -135,25 +135,22 @@ function TasksByDayTab({ tasks, onAddTask, onToggleComplete, onDeleteTask }) {
     };
 
     // --- Main Component Render ---
-    return (
-        <div className="py-3">
-            {/* 1. Day Navigation */}
+   return (
+        <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <button onClick={() => changeDay(-1)} className="btn btn-outline-secondary">&lt; Prev Day</button>
                 <h3 className="mb-0 micro-5-regular">{formattedCurrentDay}</h3>
                 <button onClick={() => changeDay(1)} className="btn btn-outline-secondary">Next Day &gt;</button>
             </div>
 
-            {/* 2. *** ВИКЛИК НОВОЇ ФУНКЦІЇ: Список завдань *** */}
             {renderTaskList()}
 
-            {/* 3. Add New Task Form */}
-            <h4 className="mt-4 micro-5-regular">Add a New Task</h4>
+            <form onSubmit={handleAddClick} className="task-form-card">
+                <h4 className="micro-5-regular mb-3">Add a New Task</h4>
             
-            {statusMessage.type === 'error' && <div className="alert alert-danger">{statusMessage.text}</div>}
-            {statusMessage.type === 'success' && <div className="alert alert-success">{statusMessage.text}</div>}
-            
-            <form onSubmit={handleAddClick} className="mb-4">
+                {statusMessage.type === 'error' && <div className="alert alert-danger">{statusMessage.text}</div>}
+                {statusMessage.type === 'success' && <div className="alert alert-success">{statusMessage.text}</div>}
+
                 <div className="input-group mb-2">
                     <input 
                         type="text" 
@@ -182,7 +179,7 @@ function TasksByDayTab({ tasks, onAddTask, onToggleComplete, onDeleteTask }) {
                         onChange={(e) => setNewTaskTags(e.target.value)}
                     />
                 </div>
-                <button type="submit" className="btn btn-primary w-100">Add Task</button>
+                <button type="submit" className="btn btn-primary mt-2">Add Task</button>
             </form>
             
         </div>

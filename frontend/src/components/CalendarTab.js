@@ -1,21 +1,15 @@
 // src/components/CalendarTab.js
 
 import React, { useState, useMemo } from 'react';
-import { Row, Col } from 'react-bootstrap'; // Використаємо сітку Bootstrap
+import { Row, Col } from 'react-bootstrap'; 
 import '../App.css';
 
-// Форматуємо дату в рядок YYYY-MM-DD
 const formatDate = (date) => date.toISOString().split('T')[0];
 
 function CalendarTab({ tasks }) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  
-  // ЦЕ НОВИЙ ВАЖЛИВИЙ СТАН:
-  // null = бічна панель прихована.
-  // Date object = бічна панель відкрита для цієї дати.
-  const [selectedDate, setSelectedDate] = useState(null);
+   const [selectedDate, setSelectedDate] = useState(null);
 
-  // --- Навігація календарем ---
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
@@ -26,10 +20,9 @@ function CalendarTab({ tasks }) {
 
   const handleToday = () => {
     setCurrentDate(new Date());
-    setSelectedDate(new Date()); // Також виділяємо сьогоднішній день
+    setSelectedDate(new Date());
   };
 
-  // Мітка для заголовка (напр., "November 2025")
   const monthYearLabel = useMemo(() => {
     return currentDate.toLocaleDateString('en-US', {
       month: 'long',
@@ -37,31 +30,26 @@ function CalendarTab({ tasks }) {
     });
   }, [currentDate]);
 
-  // --- ** ГОЛОВНА ЛОГІКА: Рендеринг днів ** ---
   const renderDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=Sunday, 1=Monday...
-    const daysInMonth = new Date(year, month + 1, 0).getDate(); // Кількість днів у місяці
+    const firstDayOfMonth = new Date(year, month, 1).getDay(); 
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const daysArray = [];
 
-    // 1. "Порожні" комірки для днів попереднього місяця
     for (let i = 0; i < firstDayOfMonth; i++) {
       daysArray.push(<div key={`pad-${i}`} className="calendar-day empty"></div>);
     }
 
-    // 2. Комірки для днів поточного місяця
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDate = new Date(year, month, day);
       const dateString = formatDate(dayDate);
       
-      // Перевірки для стилів
       const isToday = formatDate(new Date()) === dateString;
       const isSelected = selectedDate && formatDate(selectedDate) === dateString;
 
-      // ** ГОЛ 2: Знаходимо завдання для цього дня **
       const tasksForDay = tasks.filter(task => task.date === dateString);
       
       daysArray.push(
@@ -117,7 +105,7 @@ function CalendarTab({ tasks }) {
           </h5>
           <button 
             className="btn-close" 
-            onClick={() => setSelectedDate(null)} // Кнопка закриття
+            onClick={() => setSelectedDate(null)} 
           ></button>
         </div>
 
@@ -140,10 +128,8 @@ function CalendarTab({ tasks }) {
     );
   };
 
-  // --- Основний рендер компонента ---
   return (
-    <div className="py-3">
-      {/* Заголовок та навігація */}
+    <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <button onClick={handlePrevMonth} className="btn btn-sm btn-outline-secondary me-2">&lt;</button>
@@ -155,14 +141,10 @@ function CalendarTab({ tasks }) {
         </div>
       </div>
 
-      {/* ** ГОЛ 1: Сітка Bootstrap для календаря та бічної панелі ** */}
       <Row>
-        {/* Колонка календаря: 8/12, якщо щось вибрано, або 12/12, якщо ні */}
         <Col md={selectedDate ? 8 : 12} className="calendar-container">
           {renderDays()}
         </Col>
-
-        {/* Колонка бічної панелі: з'являється, лише якщо selectedDate існує */}
         {selectedDate && (
           <Col md={4} className="sidebar-container">
             {renderTaskSidebar()}
