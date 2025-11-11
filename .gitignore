@@ -1,0 +1,55 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+Dependency Directories
+
+#########################
+
+Ignore all node_modules folders anywhere in the project
+
+This covers /backend/node_modules, /frontend/node_modules, and any others.
+
+**/node_modules
+
+Configuration & Sensitive Files
+
+#################################
+
+Environment variables (ALWAYS ignore these as they contain secrets and local settings)
+
+.env
+.env.*
+.env.local
+
+Build Output
+
+##############
+
+Compiled code and temporary build artifacts
+
+dist/
+build/
+coverage/
+tmp/
+
+Log Files
+
+###########
+.log
+npm-debug.log
+
+OS and Editor Specific Files
+
+##############################
+.DS_Store
+Thumbs.db
+
+VS Code directory (contains workspace settings and launch configs)
+
+.vscode/
+
+Package Lock files (optional, but good practice for consistency)
+
+
+**/package-lock.json
+
+yarn-error.log
