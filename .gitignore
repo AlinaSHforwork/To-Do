@@ -53,3 +53,27 @@ Package Lock files (optional, but good practice for consistency)
 **/package-lock.json
 
 yarn-error.log
+
+# Dependencies (in all subfolders)
+**/node_modules
+
+# Environment Variables (Keep secrets safe)
+**/.env
+
+# Build Output
+**/build
+**/dist
+
+# Docker / System Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+**/.DS_Store
+
+# IDE Settings
+.vscode/
+.idea/
+
+# RabbitMQ / Mongo Data (if mapped locally)
+mongo-data/
+rabbitmq-data/

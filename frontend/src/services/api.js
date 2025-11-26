@@ -1,13 +1,11 @@
 // src/services/api.js
-
-export const BACKEND_API_URL = "http://localhost:4000/api"; 
-const API_BASE_URL = BACKEND_API_URL;
+export const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
 const getToken = () => localStorage.getItem('token');
 
 export const loginUser = async (email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +30,7 @@ export const loginUser = async (email, password) => {
 
 export const registerUser = async (email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +55,7 @@ export const fetchTasks = async () => {
   const token = getToken();
   if (!token) throw new Error("No authorization token found. Please log in.");
 
-  const response = await fetch(`${API_BASE_URL}/tasks`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/tasks`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`, 
@@ -75,7 +73,7 @@ export const addTask = async (taskData) => {
   const token = getToken();
   if (!token) throw new Error("No authorization token found. Please log in.");
 
-  const response = await fetch(`${API_BASE_URL}/tasks`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/tasks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -97,7 +95,7 @@ export const updateTask = async (taskId, updateData) => {
   const token = getToken();
   if (!token) throw new Error("No authorization token found. Please log in.");
 
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/tasks/${taskId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -119,7 +117,7 @@ export const deleteTask = async (taskId) => {
   const token = getToken();
   if (!token) throw new Error("No authorization token found. Please log in.");
 
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/tasks/${taskId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`, 

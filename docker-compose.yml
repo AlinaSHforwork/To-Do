@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  # --- Auth Service ---
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "4000:4000"  # External:Internal
+    environment:
+      - PORT=${AUTH_SERVICE_PORT}    # <--- INJECTED HERE
+      - MONGO_URI= ${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongo
+
+  # --- Todo Service ---
+  todo-service:
+    build: ./todo-service
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=${TODO_SERVICE_PORT}  # <--- INJECTED HERE
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongo
+
+  # --- API Gateway ---
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=${API_GATEWAY_PORT}    # <--- INJECTED HERE
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - TODO_SERVICE_URL=${TODO_SERVICE_URL}
+    depends_on:
+      - auth-service
+      - todo-service
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672" # The Dashboard
+      - "5672:5672"   # The Message Port
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ./frontend
+    ports:
+    - "3000:3000"
+    stdin_open: true  
+    tty: true   
+
+volumes:
+  mongo-data:
