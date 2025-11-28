@@ -5,9 +5,8 @@ dotenv.config();
 
 let uri = process.env.MONGO_URI;
 
-// 2. If empty/undefined, force the internal Docker URL
 if (!uri) {
-    console.log("⚠️  MONGO_URI is missing. Using default Docker URL.");
+  console.log("⚠️ MONGO_URI was undefined. Using default Docker URL.");
 }
 
 export const MONGO_URI = uri;

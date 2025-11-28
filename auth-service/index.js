@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { MONGO_URI } from './config.js';
 
-const MONGO_URI = process.env.MONGO_URI 
 const JWT_SECRET = 'your_super_secret_key'; // MUST MATCH TODO SERVICE
 const PORT = process.env.PORT ; 
 
