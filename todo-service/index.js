@@ -4,6 +4,7 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken'; 
 import amqp from 'amqplib';
 import dotenv from 'dotenv';
+import Task from './models/Task.js';
 dotenv.config();
 
 const PORT = process.env.PORT ;
@@ -46,16 +47,6 @@ async function connectQueue() {
     }
 }
 connectQueue();
-
-// --- MODELS ---
-const taskSchema = new mongoose.Schema({
-  text: String,
-  completed: Boolean,
-  date: String, 
-  tags: [String],
-  userId: { type: String, required: true } 
-});
-const Task = mongoose.model('Task', taskSchema);
 
 // --- ROUTES ---
 app.get('/', authenticateToken, async (req, res) => {
